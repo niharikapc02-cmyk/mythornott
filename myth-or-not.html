@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Myth or Not? — The Bridge Program</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #e8453c;
+      --red-dark: #8a0000;
+      --red-dim: #5a0000;
+      --green: #4caf50;
+      --green-dark: #005a00;
+      --bg: #0a0a0a;
+      --card-bg: #111111;
+      --border: #252525;
+      --text: #ffffff;
+      --muted: #888888;
+      --track-bg: #1c1c1c;
+    }
+
+    html, body {
+      height: 100%;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 420px;
+      min-height: 100vh;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── GRAIN TEXTURE ── */
+    #app::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── SCREENS ── */
+    .screen {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      position: relative;
+      z-index: 1;
+    }
+    .screen.active { display: flex; }
+
+    /* ════════════════════════════════
+       INTRO SCREEN
+    ════════════════════════════════ */
+    #intro-screen {
+      align-items: center;
+      justify-content: center;
+      padding: 40px 28px;
+      text-align: center;
+    }
+
+    .intro-rocket {
+      font-size: 64px;
+      margin-bottom: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .intro-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      letter-spacing: 3px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .intro-title .myth { color: var(--red); }
+    .intro-title .not { color: #ccc; }
+
+    .intro-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+    .intro-sub span { color: #aaa; }
+
+    .intro-divider {
+      width: 48px;
+      height: 2px;
+      background: var(--red);
+      margin: 0 auto 28px;
+    }
+
+    .intro-about {
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 28px;
+      text-align: left;
+    }
+    .intro-about h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+      letter-spacing: 2px;
+      color: var(--red);
+      margin-bottom: 10px;
+    }
+    .intro-about p {
+      font-size: 13px;
+      color: #aaa;
+      line-height: 1.6;
+    }
+
+    .start-btn {
+      width: 100%;
+      background: var(--red);
+      color: #fff;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      letter-spacing: 3px;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s;
+    }
+    .start-btn:hover { background: #c73830; transform: scale(1.02); }
+    .start-btn:active { transform: scale(0.98); }
+
+    /* ════════════════════════════════
+       PLAY SCREEN
+    ════════════════════════════════ */
+    #play-screen { padding-bottom: 16px; }
+
+    .header {
+      padding: 16px 20px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .header-rocket { font-size: 26px; }
+
+    .header-title { text-align: center; flex: 1; }
+    .header-title .ht-main {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+    .header-title .ht-main .m { color: var(--red); }
+    .header-title .ht-main .n { color: #ccc; }
+    .header-title .ht-sub {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .header-title .ht-sub .mc { color: var(--red); }
+    .header-title .ht-sub .rc { color: var(--green); }
+
+    .counter {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+      color: var(--muted);
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    /* progress bar */
+    .progress-bar-wrap {
+      height: 3px;
+      background: #1a1a1a;
+      margin: 0 20px 14px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--red);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    /* Statement card */
+    .statement-card {
+      margin: 0 16px 12px;
+      background: linear-gradient(160deg, #1a0500 0%, #0a1a0a 100%);
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 28px 24px 22px;
+      min-height: 155px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .statement-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(232,69,60,0.06) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .spark {
+      position: absolute;
+      font-size: 16px;
+      color: rgba(255,255,255,0.15);
+    }
+    .spark-tl { top: 14px; left: 14px; }
+    .spark-tr { top: 14px; right: 14px; }
+    .spark-bl { bottom: 14px; left: 14px; }
+    .spark-br { bottom: 14px; right: 14px; }
+
+    .quote-mark {
+      font-family: Georgia, serif;
+      font-size: 48px;
+      color: var(--red);
+      line-height: 0.6;
+      margin-bottom: 14px;
+      opacity: 0.8;
+    }
+
+    .statement-text {
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.45;
+      color: #fff;
+      position: relative;
+      z-index: 1;
+      transition: opacity 0.2s;
+    }
+
+    /* Slide directive */
+    .slide-directive {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 0 0 6px;
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      color: #555;
+    }
+    .arrow-r { color: var(--red); font-size: 18px; }
+    .arrow-g { color: var(--green); font-size: 18px; }
+
+    /* Slider */
+    .slider-wrap { margin: 0 16px; }
+
+    .slider-track {
+      background: linear-gradient(to right, var(--red-dim), var(--track-bg) 42%, var(--track-bg) 58%, var(--green-dark));
+      border-radius: 40px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      overflow: visible;
+      transition: background 0.1s;
+    }
+
+    .sl-myth {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      color: var(--red);
+      letter-spacing: 2px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .sl-real {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      color: var(--green);
+      letter-spacing: 2px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .slider-thumb {
+      position: absolute;
+      width: 52px;
+      height: 52px;
+      background: #2a2a2a;
+      border: 2px solid #444;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, background 0.2s;
+      touch-action: none;
+    }
+    .slider-thumb:active { cursor: grabbing; }
+    .slider-thumb i { font-size: 20px; color: #777; transition: color 0.2s; }
+
+    .slider-thumb.leaning-myth { border-color: var(--red); background: #2a0000; }
+    .slider-thumb.leaning-myth i { color: var(--red); }
+    .slider-thumb.leaning-real { border-color: var(--green); background: #002a00; }
+    .slider-thumb.leaning-real i { color: var(--green); }
+
+    .drag-hint {
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: #444;
+      margin: 5px 0 12px;
+    }
+
+    /* Feedback */
+    .feedback-box {
+      margin: 0 16px 10px;
+      background: #0e0e0e;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: none;
+      gap: 12px;
+      align-items: flex-start;
+      animation: slideUp 0.3s ease forwards;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fb-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: 56px;
+    }
+    .fb-check-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .fb-check-icon.correct-myth { background: rgba(232,69,60,0.12); color: var(--red); border: 1px solid var(--red); }
+    .fb-check-icon.correct-real { background: rgba(76,175,80,0.12); color: var(--green); border: 1px solid var(--green); }
+    .fb-check-icon.wrong { background: rgba(255,200,0,0.1); color: #ffd700; border: 1px solid #ffd700; }
+
+    .fb-verdict {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      text-align: center;
+    }
+    .fb-verdict.myth { color: var(--red); }
+    .fb-verdict.real { color: var(--green); }
+    .fb-verdict.wrong { color: #ffd700; }
+
+    .fb-right { flex: 1; }
+    .fb-label {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .fb-label.red { color: var(--red); }
+    .fb-label.green { color: var(--green); }
+    .fb-label.yellow { color: #ffd700; }
+    .fb-body { font-size: 12.5px; color: #bbb; line-height: 1.55; }
+    .fb-body .hi-green { color: var(--green); font-weight: 600; }
+    .fb-emoji { font-size: 24px; margin-top: 2px; }
+
+    /* Next button */
+    .next-btn {
+      display: none;
+      margin: 0 16px 12px;
+      width: calc(100% - 32px);
+      background: transparent;
+      border: 1px solid var(--red);
+      color: var(--red);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 3px;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      animation: fadeIn 0.3s ease forwards;
+    }
+    .next-btn:hover { background: rgba(232,69,60,0.1); }
+    .next-btn:active { transform: scale(0.98); }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+
+    /* Dots */
+    .dots-row {
+      display: flex;
+      justify-content: center;
+      gap: 7px;
+      margin: 6px 0 4px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #2a2a2a;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .dot.active { background: var(--red); transform: scale(1.2); }
+    .dot.done-correct { background: var(--green); }
+    .dot.done-wrong { background: #ffd700; }
+
+    /* Footer strip */
+    .keep-going {
+      text-align: center;
+      padding: 4px 0 12px;
+    }
+    .kg-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 14px;
+      letter-spacing: 3px;
+      color: var(--red);
+    }
+    .kg-sub { font-size: 11px; color: #444; margin-top: 2px; }
+
+    /* ════════════════════════════════
+       BUSTED OVERLAY
+    ════════════════════════════════ */
+    #busted-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(2px);
+    }
+
+    .busted-stamp {
+      animation: stampIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes stampIn {
+      from { transform: rotate(-12deg) scale(0.2); opacity: 0; }
+      to   { transform: rotate(-12deg) scale(1); opacity: 1; }
+    }
+
+    .busted-ring {
+      width: 230px; height: 230px;
+      border-radius: 50%;
+      border: 7px solid var(--red);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15,0,0,0.95);
+      box-shadow: 0 0 0 3px rgba(232,69,60,0.25), inset 0 0 0 3px rgba(232,69,60,0.12);
+      gap: 2px;
+    }
+    .busted-top {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 6px;
+      color: var(--red);
+    }
+    .busted-big {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 58px;
+      color: var(--red);
+      letter-spacing: 3px;
+      line-height: 1;
+      text-shadow: 0 0 30px rgba(232,69,60,0.5);
+    }
+    .busted-stars {
+      font-size: 12px;
+      color: var(--red);
+      letter-spacing: 4px;
+      margin-top: 4px;
+    }
+
+    /* ════════════════════════════════
+       END SCREEN
+    ════════════════════════════════ */
+    #end-screen {
+      align-items: center;
+      justify-content: center;
+      padding: 36px 28px;
+      text-align: center;
+      gap: 0;
+    }
+
+    .end-rocket {
+      font-size: 64px;
+      margin-bottom: 20px;
+      animation: float 2.5s ease-in-out infinite;
+    }
+
+    .end-h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 44px;
+      letter-spacing: 3px;
+      color: var(--red);
+      line-height: 1;
+    }
+    .end-h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      letter-spacing: 2px;
+      color: var(--green);
+      margin-bottom: 12px;
+    }
+    .end-tagline {
+      font-size: 14px;
+      color: #aaa;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      max-width: 280px;
+    }
+
+    .score-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .score-box {
+      flex: 1;
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 12px;
+    }
+    .score-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 44px;
+      line-height: 1;
+    }
+    .score-num.green { color: var(--green); }
+    .score-num.muted { color: var(--muted); }
+    .score-lbl {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    .end-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 4px;
+      color: #333;
+      margin-bottom: 6px;
+    }
+    .end-note {
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    .forms-box {
+      font-family: 'Special Elite', cursive;
+      font-size: 15px;
+      color: var(--red);
+      padding: 12px 24px;
+      border: 1px dashed var(--red);
+      border-radius: 10px;
+      background: rgba(232,69,60,0.05);
+      margin-bottom: 24px;
+    }
+
+    .restart-btn {
+      width: 100%;
+      background: #111;
+      border: 1px solid #333;
+      color: #666;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 2px;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .restart-btn:hover { background: #1a1a1a; color: #aaa; }
+
+    /* ── Responsive: on very wide screens, show a phone frame ── */
+    @media (min-width: 480px) {
+      #app {
+        min-height: 100vh;
+        box-shadow: 0 0 60px rgba(0,0,0,0.8);
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══════════ INTRO ══════════ -->
+  <div id="intro-screen" class="screen active">
+    <div class="intro-rocket">🚀</div>
+    <div class="intro-title">
+      <span class="myth">MYTH</span> OR <span class="not">NOT?</span>
+    </div>
+    <p class="intro-sub">Can you tell what's a <span>Myth</span> vs what's <span>Real</span><br>about The Bridge Program?</p>
+    <div class="intro-divider"></div>
+    <div class="intro-about">
+      <h3>✦ HOW TO PLAY</h3>
+      <p>You'll see 10 statements. Drag the slider left if you think it's a <strong style="color:#e8453c">MYTH</strong>, or right if you think it's <strong style="color:#4caf50">REAL</strong>. Find out the truth after every answer!</p>
+    </div>
+    <button class="start-btn" onclick="startGame()">LET'S GO →</button>
+  </div>
+
+  <!-- ══════════ PLAY ══════════ -->
+  <div id="play-screen" class="screen">
+    <div class="header">
+      <div class="header-rocket">🚀</div>
+      <div class="header-title">
+        <div class="ht-main"><span class="m">MYTH</span> OR <span class="n">NOT?</span></div>
+        <div class="ht-sub">Slide: <span class="mc">Myth</span> or <span class="rc">Real</span></div>
+      </div>
+      <div class="counter" id="counter">01 / 10</div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div class="statement-card">
+      <span class="spark spark-tl">✦</span>
+      <span class="spark spark-tr">✦</span>
+      <span class="spark spark-bl">✦</span>
+      <span class="spark spark-br">✦</span>
+      <div class="quote-mark">"</div>
+      <div class="statement-text" id="statement-text">Loading…</div>
+    </div>
+
+    <div class="slide-directive">
+      <span class="arrow-r">←</span>
+      <span>SLIDE TO DECIDE</span>
+      <span class="arrow-g">→</span>
+    </div>
+
+    <div class="slider-wrap">
+      <div class="slider-track" id="slider-track">
+        <span class="sl-myth">MYTH</span>
+        <span class="sl-real">REAL</span>
+        <div class="slider-thumb" id="slider-thumb">
+          <i class="ti ti-grip-horizontal"></i>
+        </div>
+      </div>
+    </div>
+    <div class="drag-hint">↑ DRAG ME</div>
+
+    <div class="feedback-box" id="feedback-box">
+      <div class="fb-left">
+        <div class="fb-check-icon" id="fb-icon"><i class="ti ti-check"></i></div>
+        <div class="fb-verdict" id="fb-verdict">REAL!</div>
+      </div>
+      <div class="fb-right">
+        <div class="fb-label" id="fb-label">Correct! This is real.</div>
+        <div class="fb-body" id="fb-body"></div>
+      </div>
+      <div class="fb-emoji" id="fb-emoji">😊</div>
+    </div>
+
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">NEXT QUESTION →</button>
+
+    <div class="dots-row" id="dots-row"></div>
+
+    <div class="keep-going">
+      <div class="kg-title">✦ KEEP GOING! ✦</div>
+      <div class="kg-sub" id="kg-sub">You're doing great!</div>
+    </div>
+  </div>
+
+  <!-- ══════════ END ══════════ -->
+  <div id="end-screen" class="screen">
+    <div class="end-rocket">🚀</div>
+    <div class="end-h1">MYTHS BUSTED.</div>
+    <div class="end-h2">CONFIDENCE UNLOCKED.</div>
+    <p class="end-tagline">Turns out The Bridge Program is not as scary as it sounds.</p>
+    <div class="score-row">
+      <div class="score-box">
+        <div class="score-num green" id="final-score">0</div>
+        <div class="score-lbl">CORRECT</div>
+      </div>
+      <div class="score-box">
+        <div class="score-num muted" id="final-wrong">0</div>
+        <div class="score-lbl">INCORRECT</div>
+      </div>
+      <div class="score-box">
+        <div class="score-num muted" id="final-total">10</div>
+        <div class="score-lbl">TOTAL</div>
+      </div>
+    </div>
+    <div class="end-brand">THE BRIDGE PROGRAM</div>
+    <p class="end-note">A simple conversation. A powerful shift.</p>
+
+    <button class="restart-btn" onclick="restartGame()">↺ PLAY AGAIN</button>
+  </div>
+
+</div>
+
+<!-- ══════════ BUSTED OVERLAY ══════════ -->
+<div id="busted-overlay">
+  <div class="busted-stamp">
+    <div class="busted-ring">
+      <div class="busted-top">MYTH</div>
+      <div class="busted-big">BUSTED</div>
+      <div class="busted-stars">★ ★ ★ ★ ★</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ALL_CARDS = [
+    {
+      statement: "The other person in the pair will judge what I say.",
+      type: "myth",
+      explanation: "This is not an evaluation. Both sides are briefed to keep the conversation respectful, confidential, and focused on understanding different views."
+    },
+    {
+      statement: "If I say something honest, it may be taken negatively.",
+      type: "myth",
+      explanation: "You don't need to complain or name people. Share examples and patterns constructively. The conversation stays within the pair, unless both agree to share a broad takeaway."
+    },
+    {
+      statement: "I need to be an expert to participate in The Bridge Program.",
+      type: "myth",
+      explanation: "You don't need to know everything. Your real work experience, examples, and observations are enough to start a useful conversation."
+    },
+    {
+      statement: "If I join as a junior participant, people will think I don't know enough.",
+      type: "myth",
+      explanation: "The Bridge Program is not about lack of knowledge. It is about staying close to how work is changing on the ground."
+    },
+    {
+      statement: "The sharing participant has to prepare a full presentation.",
+      type: "myth",
+      explanation: "No heavy prep is needed. A simple example, observation, or work situation is enough."
+    },
+    {
+      statement: "The session will become awkward.",
+      type: "myth",
+      explanation: "It may feel new for the first few minutes, but the structure and prompts help the conversation flow naturally."
+    },
+    {
+      statement: "Only very confident speakers can take part in The Bridge Program.",
+      type: "myth",
+      explanation: "You don't need to be the loudest person in the room. You just need to share your view clearly and honestly."
+    },
+    {
+      statement: "This will take too much time.",
+      type: "myth",
+      explanation: "It is only around 30 minutes a month. The format is designed to be light and manageable."
+    },
+    {
+      statement: "I already speak to my team, so I don't need The Bridge Program.",
+      type: "myth",
+      explanation: "This is different from normal team conversations because it happens outside daily reporting, reviews, and delivery pressure."
+    },
+    {
+      statement: "The Bridge Program won't give me anything I don't already know.",
+      type: "myth",
+      explanation: "It may not give a completely new topic, but it gives a fresh perspective on how people are using, understanding, or working around things."
+    },
+    {
+      statement: "You may feel nervous before the first session.",
+      type: "real",
+      explanation: "It's completely normal! Starting something new can feel a little uncomfortable. That's okay. You're not alone."
+    },
+    {
+      statement: "A simple observation from daily work is enough to start a Bridge Program conversation.",
+      type: "real",
+      explanation: "Real experiences and patterns are the heart of these sessions. No polish or expertise required — just your honest perspective."
+    },
+    {
+      statement: "Bridge Program conversations stay confidential between the pair.",
+      type: "real",
+      explanation: "What's discussed stays within the pair, unless both explicitly agree to share a broad takeaway. It's a safe space."
+    },
+    {
+      statement: "The Bridge Program happens outside the usual reporting and review structure.",
+      type: "real",
+      explanation: "That's exactly what makes it different — no hierarchy pressure, no performance lens. Just an honest, peer-level conversation."
+    }
+  ];
+
+  let cards = [];
+  let current = 0;
+  let answered = false;
+  let score = 0;
+  let thumbX = 0;
+  let trackWidth = 0;
+  let dragging = false;
+  let startX = 0;
+  let startThumbX = 0;
+  let dotStates = [];
+
+  const thumb   = document.getElementById('slider-thumb');
+  const track   = document.getElementById('slider-track');
+  const fbBox   = document.getElementById('feedback-box');
+  const nextBtn = document.getElementById('next-btn');
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function startGame() {
+    cards = shuffle(ALL_CARDS).slice(0, 10);
+    current = 0;
+    score = 0;
+    dotStates = new Array(10).fill('');
+    showScreen('play-screen');
+    loadQuestion();
+  }
+
+  function restartGame() {
+    showScreen('intro-screen');
+  }
+
+  function buildDots() {
+    const row = document.getElementById('dots-row');
+    row.innerHTML = '';
+    cards.forEach((_, i) => {
+      const d = document.createElement('div');
+      let cls = 'dot';
+      if (i === current) cls += ' active';
+      else if (dotStates[i] === 'correct') cls += ' done-correct';
+      else if (dotStates[i] === 'wrong') cls += ' done-wrong';
+      d.className = cls;
+      row.appendChild(d);
+    });
+  }
+
+  function loadQuestion() {
+    answered = false;
+    fbBox.style.display = 'none';
+    nextBtn.style.display = 'none';
+
+    const card = cards[current];
+    document.getElementById('statement-text').textContent = card.statement;
+    document.getElementById('counter').textContent =
+      String(current + 1).padStart(2, '0') + ' / ' + cards.length;
+
+    const pct = ((current) / cards.length) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+
+    const msgs = ["You're doing great!", "Keep going!", "Stay sharp!", "Almost halfway!", "More than halfway!", "So close now!", "Nearly there!", "Last stretch!", "Final question coming!", "You've got this!"];
+    document.getElementById('kg-sub').textContent = msgs[Math.min(current, msgs.length - 1)];
+
+    buildDots();
+    resetThumb();
+  }
+
+  function resetThumb() {
+    requestAnimationFrame(() => {
+      trackWidth = track.offsetWidth;
+      thumbX = trackWidth / 2;
+      thumb.style.left = thumbX + 'px';
+      thumb.className = 'slider-thumb';
+      track.style.background = 'linear-gradient(to right, #5a0000, #1c1c1c 42%, #1c1c1c 58%, #005a00)';
+    });
+  }
+
+  function getAnswer() {
+    const pct = thumbX / trackWidth;
+    if (pct < 0.35) return 'myth';
+    if (pct > 0.65) return 'real';
+    return null;
+  }
+
+  function submitAnswer(choice) {
+    if (answered) return;
+    answered = true;
+
+    const card = cards[current];
+    const correct = choice === card.type;
+    if (correct) score++;
+    dotStates[current] = correct ? 'correct' : 'wrong';
+    buildDots();
+
+    if (card.type === 'myth' && correct) {
+      showBusted(() => showFeedback(card, correct, choice));
+    } else {
+      showFeedback(card, correct, choice);
+    }
+  }
+
+  function showBusted(cb) {
+    const overlay = document.getElementById('busted-overlay');
+    overlay.style.display = 'flex';
+    // re-trigger animation
+    const stamp = overlay.querySelector('.busted-stamp');
+    stamp.style.animation = 'none';
+    stamp.offsetHeight; // reflow
+    stamp.style.animation = '';
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      if (cb) cb();
+    }, 2000);
+  }
+
+  function showFeedback(card, correct, choice) {
+    const icon     = document.getElementById('fb-icon');
+    const verdict  = document.getElementById('fb-verdict');
+    const label    = document.getElementById('fb-label');
+    const body     = document.getElementById('fb-body');
+    const emoji    = document.getElementById('fb-emoji');
+
+    if (correct) {
+      if (card.type === 'myth') {
+        icon.className = 'fb-check-icon correct-myth';
+        icon.innerHTML = '<i class="ti ti-x"></i>';
+        verdict.className = 'fb-verdict myth';
+        verdict.textContent = 'MYTH!';
+        label.className = 'fb-label red';
+        label.textContent = 'Correct. This is a myth.';
+      } else {
+        icon.className = 'fb-check-icon correct-real';
+        icon.innerHTML = '<i class="ti ti-check"></i>';
+        verdict.className = 'fb-verdict real';
+        verdict.textContent = 'REAL!';
+        label.className = 'fb-label green';
+        label.textContent = 'Correct. This is real!';
+      }
+      body.innerHTML = card.explanation + '<br><span class="hi-green">You\'re not alone.</span>';
+      emoji.textContent = '😊';
+    } else {
+      if (card.type === 'myth') {
+        icon.className = 'fb-check-icon wrong';
+        icon.innerHTML = '<i class="ti ti-alert-triangle"></i>';
+        verdict.className = 'fb-verdict wrong';
+        verdict.textContent = 'MYTH!';
+        label.className = 'fb-label yellow';
+        label.textContent = 'Actually, this is a myth.';
+      } else {
+        icon.className = 'fb-check-icon wrong';
+        icon.innerHTML = '<i class="ti ti-alert-triangle"></i>';
+        verdict.className = 'fb-verdict wrong';
+        verdict.textContent = 'REAL!';
+        label.className = 'fb-label yellow';
+        label.textContent = 'Actually, this is real!';
+      }
+      body.innerHTML = card.explanation;
+      emoji.textContent = '🤔';
+    }
+
+    fbBox.style.display = 'flex';
+    nextBtn.style.display = 'block';
+    nextBtn.textContent = current + 1 < cards.length ? 'NEXT QUESTION →' : 'SEE RESULTS →';
+  }
+
+  function nextQuestion() {
+    current++;
+    if (current >= cards.length) {
+      document.getElementById('final-score').textContent = score;
+      document.getElementById('final-wrong').textContent = cards.length - score;
+      document.getElementById('final-total').textContent = cards.length;
+      document.getElementById('progress-fill').style.width = '100%';
+      showScreen('end-screen');
+    } else {
+      loadQuestion();
+    }
+  }
+
+  /* ── DRAG LOGIC ── */
+  function updateThumbVisual() {
+    const pct = thumbX / trackWidth;
+    if (pct < 0.35) {
+      thumb.className = 'slider-thumb leaning-myth';
+      track.style.background = 'linear-gradient(to right, #9a0000, #2a0000 38%, #1c1c1c 55%, #005a00)';
+    } else if (pct > 0.65) {
+      thumb.className = 'slider-thumb leaning-real';
+      track.style.background = 'linear-gradient(to right, #5a0000, #1c1c1c 45%, #002a00 62%, #008000)';
+    } else {
+      thumb.className = 'slider-thumb';
+      track.style.background = 'linear-gradient(to right, #5a0000, #1c1c1c 42%, #1c1c1c 58%, #005a00)';
+    }
+  }
+
+  thumb.addEventListener('mousedown', (e) => {
+    if (answered) return;
+    dragging = true;
+    trackWidth = track.offsetWidth;
+    startX = e.clientX;
+    startThumbX = thumbX;
+    e.preventDefault();
+  });
+
+  thumb.addEventListener('touchstart', (e) => {
+    if (answered) return;
+    dragging = true;
+    trackWidth = track.offsetWidth;
+    startX = e.touches[0].clientX;
+    startThumbX = thumbX;
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging || answered) return;
+    const delta = e.clientX - startX;
+    thumbX = Math.max(26, Math.min(trackWidth - 26, startThumbX + delta));
+    thumb.style.left = thumbX + 'px';
+    updateThumbVisual();
+  });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!dragging || answered) return;
+    const delta = e.touches[0].clientX - startX;
+    thumbX = Math.max(26, Math.min(trackWidth - 26, startThumbX + delta));
+    thumb.style.left = thumbX + 'px';
+    updateThumbVisual();
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    const ans = getAnswer();
+    if (ans) submitAnswer(ans);
+    else resetThumb();
+  });
+
+  document.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    const ans = getAnswer();
+    if (ans) submitAnswer(ans);
+    else resetThumb();
+  });
+
+  /* Click on track */
+  track.addEventListener('click', (e) => {
+    if (answered || dragging) return;
+    trackWidth = track.offsetWidth;
+    const rect = track.getBoundingClientRect();
+    thumbX = Math.max(26, Math.min(trackWidth - 26, e.clientX - rect.left));
+    thumb.style.left = thumbX + 'px';
+    updateThumbVisual();
+    const ans = getAnswer();
+    if (ans) submitAnswer(ans);
+    else resetThumb();
+  });
+</script>
+</body>
+</html>
